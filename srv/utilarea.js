@@ -30,12 +30,10 @@ const getamapdistrict_polyline = (targetadcode,callbackfn)=>{
   return fetch(url).then((res)=>{
     return res.json();
   }).then((json)=> {
-    console.log(json);
-    const polyline = _.get(json,'districts[0].polyline','');
-    console.log(JSON.stringify(polyline));
+    const polyline = _.get(json,'districts[0].polyline');
     callbackfn(polyline);
   }).catch((e)=>{
-    callbackfn('');
+    callbackfn();
   });
 }
 //http://restapi.amap.com/v3/geocode/geo?parameters

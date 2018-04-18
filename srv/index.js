@@ -1,5 +1,6 @@
 const mongodburl = process.env.MONGO_URL || 'mongodb://localhost/amapgeo';
 const mongoose     = require('mongoose');
+const async = require('async');
 const Schema       = mongoose.Schema;
 const moment = require('moment');
 const _ = require('lodash');
@@ -64,14 +65,45 @@ if(initdistrict_basic){
 
 if(initdistrict_polyline){
   GeoModel.find({
-      "adcode" : "350900",
-      "level" : "city",
-   }).lean().exec((err,listcities)=>{
+      // "adcode" : "350900",
+      // "level" : "city",
+      geometry:{$exists:false}
+   }).limit(99).lean().exec((err,listcities)=>{
      if(!err && !!listcities){
        _.map(listcities,(ciyobj)=>{
          utilarea.getamapdistrict_polyline(ciyobj.adcode,(polyline)=>{
            console.log(`polyline-->${polyline}`);
-         });
+           if(!!polyline){
+             let szpoint = [];
+             let szpolygon = [];
+             const blocklist = polyline.split('|');
+             _.map(blocklist,(pl)=>{
+               const latlnglist = pl.split(';');
+               let szpoint = [];
+               _.map(latlnglist,(latlng)=>{
+                 const points = latlng.split(',');
+                 const point = [
+                   parseFloat(points[0]),
+                   parseFloat(points[1]),
+                 ];
+                 szpoint.push(point);
+               });
+               szpolygon.push(szpoint);
+             });
+
+             const geometry = {
+               "type" : "MultiPolygon",
+               "coordinates" : [
+                 szpolygon
+               ]
+             };
+             GeoModel.findOneAndUpdate({
+                 adcode:ciyobj.adcode,
+              },{$set:{geometry}},{upsert:true,new:true}).lean().exec((err,result)=>{
+                console.log(`result-->${JSON.stringify(result)}`)
+              });
+          }
+        });
        });
      }
    });
