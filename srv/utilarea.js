@@ -119,3 +119,12 @@ exports.getareasz = getareasz;
 exports.getarea = getarea;
 exports.getamapdistrict_adcodelist = getamapdistrict_adcodelist;
 exports.getamapdistrict_polyline = getamapdistrict_polyline;
+
+
+// db.getCollection('geo_osm').find({geometry:
+//                  {$geoIntersects:
+//                      {$geometry:{ "type" : "Point",
+//                           "coordinates" : [109.433671,24.350483] }
+//                       }
+//                   }
+//              });

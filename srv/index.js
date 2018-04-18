@@ -5,11 +5,12 @@ const Schema       = mongoose.Schema;
 const moment = require('moment');
 const _ = require('lodash');
 const utilarea = require('./utilarea');
+const getalldefault_devicegroups = require('./getallcities');
 
 //连接数据库
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburl,{
-    useMongoClient: true,
+    // useMongoClient: true,
     // This options is 1 second by default, its possible the ha
     // takes longer than 30 seconds to recover.
     reconnectInterval: 5000,
@@ -20,11 +21,12 @@ mongoose.connect(mongodburl,{
 //设备轨迹
 const GeoSchema = new Schema({
 }, { strict: false });
+
 const GeoModel = mongoose.model('amapdistrict',  GeoSchema);
 
 
 const initdistrict_basic = false;
-const initdistrict_polyline = true;
+const initdistrict_polyline = false;
 if(initdistrict_basic){
   const targetadcode = '100000';
   const subdistrict = 3;
@@ -32,30 +34,39 @@ if(initdistrict_basic){
     _.map(jsondistricts,(objl1)=>{
       let setGeo = _.omit(objl1,['districts','center']);
       setGeo.parentadcode = targetadcode;
+      setGeo.levelint = 1;
       GeoModel.findOneAndUpdate({
           adcode:objl1.adcode,
        },{$set:setGeo},{upsert:true,new:true}).lean().exec((err,result)=>{
-         console.log(`result-->${JSON.stringify(result)}`)
+         console.log(`result-->${objl1.adcode}`)
        });
 
        const districts = _.get(objl1,'districts',[]);
        _.map(districts,(objl2)=>{
          let setGeo = _.omit(objl2,['districts','center']);
+         setGeo.levelint = 2;
+         setGeo.provicename = objl1.name;//<---
+         setGeo.parentname = objl1.name;//<---
+         setGeo.parentlevel = objl1.level;//<---
          setGeo.parentadcode = objl1.adcode;//<---
          GeoModel.findOneAndUpdate({
              adcode:objl2.adcode,
           },{$set:setGeo},{upsert:true,new:true}).lean().exec((err,result)=>{
-            console.log(`result-->${JSON.stringify(result)}`)
+            console.log(`result-->${objl2.adcode}`)
           });
 
           const districts2 = _.get(objl2,'districts',[]);
           _.map(districts2,(objl3)=>{
             let setGeo = _.omit(objl3,['districts','center']);
+            setGeo.levelint = 3;
+            setGeo.provicename = objl1.name;//<---
+            setGeo.parentname = objl2.name;
+            setGeo.parentlevel = objl2.level;
             setGeo.parentadcode = objl2.adcode;
             GeoModel.findOneAndUpdate({
                 adcode:objl3.adcode,
              },{$set:setGeo},{upsert:true,new:true}).lean().exec((err,result)=>{
-               console.log(`result-->${JSON.stringify(result)}`)
+               console.log(`result-->${objl3.adcode}`)
              });
            });
        });
@@ -64,15 +75,16 @@ if(initdistrict_basic){
 }
 
 if(initdistrict_polyline){
+  const GeoModel = mongoose.model('amapdistrict',  GeoSchema);
   GeoModel.find({
       // "adcode" : "350900",
       // "level" : "city",
       geometry:{$exists:false}
-   }).limit(99).lean().exec((err,listcities)=>{
+   }).lean().exec((err,listcities)=>{
      if(!err && !!listcities){
        _.map(listcities,(ciyobj)=>{
          utilarea.getamapdistrict_polyline(ciyobj.adcode,(polyline)=>{
-           console.log(`polyline-->${polyline}`);
+           console.log(`polyline-->${ciyobj.adcode},polyline:${!!polyline}`);
            if(!!polyline){
              let szpoint = [];
              let szpolygon = [];
@@ -100,7 +112,7 @@ if(initdistrict_polyline){
              GeoModel.findOneAndUpdate({
                  adcode:ciyobj.adcode,
               },{$set:{geometry}},{upsert:true,new:true}).lean().exec((err,result)=>{
-                console.log(`result-->${JSON.stringify(result)}`)
+                console.log(`result-->${result.adcode}`)
               });
           }
         });
@@ -108,3 +120,9 @@ if(initdistrict_polyline){
      }
    });
  }
+
+
+getalldefault_devicegroups(GeoModel,(grouplist)=>{
+  console.log(JSON.stringify(grouplist));
+  console.log(grouplist.length);
+})
