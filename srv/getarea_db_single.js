@@ -2,7 +2,7 @@
 const _ = require('lodash');
 const getarea_db_single = (GeoModel,v,callback)=>{
   //考虑到有些省下级是区，所以筛选区的上级
-  GeoModel.findOne({"level" : "city",
+  GeoModel.findOne({citycode:{$type:2},
                   geometry:
                  {$geoIntersects:
                      {$geometry:{ "type" : "Point",
@@ -11,7 +11,7 @@ const getarea_db_single = (GeoModel,v,callback)=>{
                   }
              }).lean().exec((err,ret)=>{
      if(!err && !!ret){
-       callback({_id:v._id,adcode:ret.adcode,getflag:'fromdb'});
+       callback({_id:v._id,citycode:ret.citycode,getflag:'fromdb'});
      }
      else{
        callback({_id:v._id});

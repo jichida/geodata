@@ -2,33 +2,58 @@
 const _ = require('lodash');
 const getalldefault_devicegroups = (GeoModel,callback)=>{
   //考虑到有些省下级是区，所以筛选区的上级
+  //应该按citycode groupby 并取levelint最小值
+  // GeoModel.aggregate([
+  //   {
+  //     $match: {levelint:{$lt:3}}
+  //   },
+  //   {
+  //     $group: {
+  //         _id: {citycode:"$citycode",name: "$name",levelint:"$levelint"},
+  //         citycode:{
+  //           $first: "$citycode"
+  //         },
+  //         levelint:{
+  //           $first: "$levelint"
+  //         },
+  //         name: {
+  //           $first: "$name"
+  //         }
+  //       }
+  //   },
+  //   {
+  //       $sort: {
+  //           "levelint": 1
+  //       }
+  //   },
+  //   {
+  //       $group: {
+  //           _id: {citycode:"$citycode"},
+  //           levelint:{
+  //             $first: "$levelint"
+  //           },
+  //           name: {
+  //             $first: "$name"
+  //           }
+  //       }
+  //   }
+  // ])
   GeoModel.find({
-      "level" : "district",
+        levelint:{$lt:3},
+        citycode:{$type:2},
+        level:{$in:['city','provice']}
    },{
+     "name":1,
+     "citycode":1,
      "provicename":1,
-     "levelint":1,
-     "parentlevel" : 1,
-     "parentadcode" : 1,
-     "parentname" : 1
    }).lean().exec((err,listcities)=>{
      if(!err && !!listcities){
-       //先排序,后去重
-       listcities = _.sortBy(listcities, [(o)=>{
-         const key = `${o.parentadcode}`;
-         return key;
-       }]);
-
-       listcities = _.sortedUniqBy(listcities,(o)=>{
-         const key = `${o.parentadcode}`;
-         return key;
-       });
-
        let devicelist = [];
        _.map(listcities,(v)=>{
          devicelist.push({
-           name:v.levelint > 2 ?`${v.provicename}${v.parentname}`:v.parentname,
-           adcode:v.parentadcode,
-           level:v.parentlevel
+           name:level === 'city' ?`${v.provicename}${v.name}`:v.name,
+           citycode:v.citycode,
+           level:v.level
          });
        });
        callback(devicelist);
