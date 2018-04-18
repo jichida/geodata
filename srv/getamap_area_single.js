@@ -17,7 +17,7 @@ const getarea = ({_id,Longitude,Latitude},callbackfn)=>{
     const regeocode = json.regeocode;
     if(!!regeocode){
       let adcode = _.get(regeocode,'addressComponent.adcode',0);
-      callbackfn({_id,adcode});
+      callbackfn({_id,adcode,getflag:'fromamap'});
     }
     else{
       callbackfn({_id});

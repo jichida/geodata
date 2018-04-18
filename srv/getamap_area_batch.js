@@ -25,7 +25,7 @@ const getareasz = (devicelist,callbackfn)=>{
     if(regeocodes.length === devicelist.length){
       _.map(devicelist,(v,index)=>{
         const adcode = _.get(regeocodes[index],'addressComponent.adcode');
-        retlist.push({_id:v._id,adcode});
+        retlist.push({_id:v._id,adcode,getflag:'fromamap'});
       });
     }
     callbackfn(retlist);

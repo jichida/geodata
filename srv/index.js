@@ -8,6 +8,7 @@ const utilarea = require('./utilarea');
 const getalldefault_devicegroups = require('./getallcities');
 const getamap_area_batch = require('./getamap_area_batch');
 const getamap_area_single = require('./getamap_area_single');
+const getarea_db_single = require('./getarea_db_single');
 //连接数据库
 mongoose.Promise = global.Promise;
 mongoose.connect(mongodburl,{
@@ -76,7 +77,7 @@ if(initdistrict_basic){
 }
 
 if(initdistrict_polyline){
-  const GeoModel = mongoose.model('amapdistrict',  GeoSchema);
+  // const GeoModel = mongoose.model('amapdistrict',  GeoSchema);
   GeoModel.find({
       // "adcode" : "350900",
       // "level" : "city",
@@ -133,15 +134,24 @@ const testdevice = [
     "Longitude" : 121.62202,
     "Latitude" : 31.299704,
   },
+  {
+    _id:'0',
+    "Longitude" :109.433671,
+    "Latitude" : 24.350483
+  }
 ];
 
 getamap_area_batch(testdevice,(result)=>{
   console.log(`getamap_area_batch---->${JSON.stringify(result)}`);
 });
 
-// getamap_area_single(testdevice[0],(result)=>{
-//   console.log(`getamap_area_single---->${JSON.stringify(result)}`);
-// });
+getarea_db_single(GeoModel,testdevice[2],(result)=>{
+  console.log(`getarea_db_single---->${JSON.stringify(result)}`);
+});
+
+getamap_area_single(testdevice[0],(result)=>{
+  console.log(`getamap_area_single---->${JSON.stringify(result)}`);
+});
 // getalldefault_devicegroups(GeoModel,(grouplist)=>{
 //   console.log(JSON.stringify(grouplist));
 //   console.log(grouplist.length);
