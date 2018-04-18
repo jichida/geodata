@@ -1,7 +1,5 @@
 //返回区的上级
-
 const _ = require('lodash');
-
 const getalldefault_devicegroups = (GeoModel,callback)=>{
   //考虑到有些省下级是区，所以筛选区的上级
   GeoModel.find({
