@@ -6,8 +6,8 @@ const key = 'dadfa0897bd9c8cff9cffdf330974b55';
 
 //1、获取所有省信息的adcode
 //2、获取所有市信息+地理位置区域
-const getamapdistrict_adcodelist = (targetadcode,callbackfn)=>{
-  const url = `http://restapi.amap.com/v3/config/district?key=${key}&keywords=${targetadcode}&subdistrict=2`;
+const getamapdistrict_adcodelist = (targetadcode,subdistrict,callbackfn)=>{
+  const url = `http://restapi.amap.com/v3/config/district?key=${key}&keywords=${targetadcode}&subdistrict=${subdistrict}`;
   // //console.log(`url==>${url}`);
   // "key=" + key + "&location=" + location[0] + "," + location[1] +
   // "&poitype=商务住宅&radius=0&extensions=base&batch=false&roadlevel=0";
@@ -19,6 +19,23 @@ const getamapdistrict_adcodelist = (targetadcode,callbackfn)=>{
     callbackfn(districts);
   }).catch((e)=>{
     callbackfn([]);
+  });
+}
+
+const getamapdistrict_polyline = (targetadcode,callbackfn)=>{
+  const url = `http://restapi.amap.com/v3/config/district?key=${key}&keywords=${targetadcode}&subdistrict=0&extensions=all`;
+  // //console.log(`url==>${url}`);
+  // "key=" + key + "&location=" + location[0] + "," + location[1] +
+  // "&poitype=商务住宅&radius=0&extensions=base&batch=false&roadlevel=0";
+  return fetch(url).then((res)=>{
+    return res.json();
+  }).then((json)=> {
+    console.log(json);
+    const polyline = _.get(json,'districts[0].polyline','');
+    console.log(JSON.stringify(polyline));
+    callbackfn(polyline);
+  }).catch((e)=>{
+    callbackfn('');
   });
 }
 //http://restapi.amap.com/v3/geocode/geo?parameters
@@ -103,3 +120,4 @@ const getarea = ({latlng},callbackfn)=>{
 exports.getareasz = getareasz;
 exports.getarea = getarea;
 exports.getamapdistrict_adcodelist = getamapdistrict_adcodelist;
+exports.getamapdistrict_polyline = getamapdistrict_polyline;
